@@ -1,10 +1,16 @@
 import express from "express";
 import { verifyToken } from "../../core/middlewares/authMiddleware.js";
-import { getCustomerAnalyticsController } from "./dashboard.controller.js";
+import {
+  getCustomerAnalyticsController,
+  getDashboardStatsController,
+  getDashboardGrowthController
+} from "./dashboard.controller.js";
 
 
 const router = express.Router();
 
-router.get("/customers", verifyToken, getCustomerAnalyticsController);
+router.get("/stats",verifyToken, getDashboardStatsController);
+router.get("/growth",verifyToken, getDashboardGrowthController);
+router.get("/customers",verifyToken, getCustomerAnalyticsController);
 
 export default router;
