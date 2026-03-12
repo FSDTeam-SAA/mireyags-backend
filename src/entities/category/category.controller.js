@@ -7,12 +7,12 @@ import { createPaginationInfo } from "../../lib/pagination.js";
 // Get all categories (pagination)
 export const getAllCategories = async (req, res) => {
   try {
-    let { page = 1, limit = 10, q, isActive } = req.query;
+    let { page = 1, limit = 10, q, search, isActive } = req.query;
 
     page = parseInt(page);
     limit = parseInt(limit);
 
-    const search = q?.trim();
+    const searchTerm = (search || q)?.trim();
     const parsedIsActive =
       typeof isActive !== "undefined" ? isActive === "true" : undefined;
 
@@ -20,7 +20,7 @@ export const getAllCategories = async (req, res) => {
       await categoryService.getAllCategoriesService({
         page,
         limit,
-        search,
+        search: searchTerm,
         isActive: parsedIsActive
       });
 
