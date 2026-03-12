@@ -3,17 +3,30 @@ import slugify from "slugify";
 import Brand from "./brands.model.js";
 
 
-// Get all brands
-export const getAllBrandsService = async ({ page, limit }) => {
+// Get all brands with optional search/filter
+export const getAllBrandsService = async ({ page, limit, search, isActive }) => {
   const skip = (page - 1) * limit;
 
+  const filters = {};
+
+  if (typeof isActive !== "undefined") {
+    filters.isActive = isActive;
+  }
+
+  if (search) {
+    filters.$or = [
+      { name: { $regex: search, $options: "i" } },
+      { slug: { $regex: search, $options: "i" } }
+    ];
+  }
+
   const [brands, totalData] = await Promise.all([
-    Brand.find()
+    Brand.find(filters)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
 
-    Brand.countDocuments()
+    Brand.countDocuments(filters)
   ]);
 
   return { brands, totalData };

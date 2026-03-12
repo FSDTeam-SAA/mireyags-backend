@@ -3,17 +3,27 @@ import mongoose from "mongoose";
 
 
 
-// Get all with pagination
-export const getAllCategoriesService = async ({ page, limit }) => {
+// Get all with pagination, optional search/filter
+export const getAllCategoriesService = async ({ page, limit, search, isActive }) => {
   const skip = (page - 1) * limit;
 
+  const filters = {};
+
+  if (typeof isActive !== "undefined") {
+    filters.isActive = isActive;
+  }
+
+  if (search) {
+    filters.name = { $regex: search, $options: "i" };
+  }
+
   const [categories, totalData] = await Promise.all([
-    Category.find()
+    Category.find(filters)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
 
-    Category.countDocuments()
+    Category.countDocuments(filters)
   ]);
 
   return { categories, totalData };
