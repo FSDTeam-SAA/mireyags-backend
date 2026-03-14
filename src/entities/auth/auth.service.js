@@ -8,7 +8,8 @@ import verificationCodeTemplate from '../../lib/emailTemplates.js';
 export const registerUserService = async ({
   name,
   email,
-  password
+  password,
+  phone
 }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new Error('User already registered.');
@@ -17,12 +18,13 @@ export const registerUserService = async ({
     name,
     email,
     password,
+    phone
   });
 
   const user = await newUser.save();
 
   const { _id, role, profileImage } = user;
-  return { _id, name, email, role,  profileImage };
+  return { _id, name, email, role, profileImage, phone: user.phone };
 };
 
 

@@ -139,7 +139,7 @@ export const getOrdersService = async (user, query) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("userId", "fullName email");
+    .populate("userId", "name email profileImage");
 
   return {
     data: orders,
@@ -161,6 +161,8 @@ export const getOrderService = async (id, currentUser) => {
   }
 
   if (!order) throw new Error("Order not found");
+
+  await order.populate("userId", "name email profileImage");
 
   return order;
 };

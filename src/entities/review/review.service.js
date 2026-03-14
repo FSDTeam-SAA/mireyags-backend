@@ -52,7 +52,7 @@ export const getProductReviewsService = async (productId, query) => {
   const totalData = await Review.countDocuments({ productId });
 
   const reviews = await Review.find({ productId })
-    .populate("userId", "name email")
+    .populate("userId", "name email profileImage")
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

@@ -159,7 +159,7 @@ export const getCustomerAnalyticsService = async (user, query) => {
       userId: c._id,
       name: c.user.name,
       email: c.user.email,
-      image: c.user.image,
+      image: c.user.profileImage,
       totalOrders: c.totalOrders,
       totalQuantity: c.totalQuantity,
       totalSpent: c.totalSpent
@@ -209,7 +209,7 @@ export const getSingleCustomerService = async (user, userId) => {
     userId: customer._id,
     name: customer.user.name,
     email: customer.user.email,
-    image: customer.user.image,
+    image: customer.user.profileImage,
     totalOrders: customer.totalOrders,
     totalQuantity: customer.totalQuantity,
     totalSpent: customer.totalSpent
