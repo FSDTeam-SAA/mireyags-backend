@@ -1,6 +1,7 @@
 import { generateResponse } from "../../lib/responseFormate.js";
 import {
   getCustomerAnalyticsService,
+  getSingleCustomerService,
   getDashboardStatsService,
   getDashboardGrowthService
 } from "./dashboard.service.js";
@@ -12,6 +13,24 @@ export const getCustomerAnalyticsController = async (req, res, next) => {
     const data = await getCustomerAnalyticsService(req.user, { page, limit, search });
     return generateResponse(res, 200, true, "Customer analytics fetched", data);
   } catch (err) {
+    next(err);
+  }
+};
+
+
+export const getSingleCustomerController = async (req, res, next) => {
+  try {
+    const data = await getSingleCustomerService(req.user, req.params.userId);
+
+    if (!data) {
+      return generateResponse(res, 404, false, "Customer not found");
+    }
+
+    return generateResponse(res, 200, true, "Customer fetched", data);
+  } catch (err) {
+    if (err.message === "Only admin can access customer analytics") {
+      return generateResponse(res, 403, false, err.message, null);
+    }
     next(err);
   }
 };

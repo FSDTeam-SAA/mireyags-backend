@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { createPaginationInfo } from "../../lib/pagination.js";
 import Order from "../order/order.model.js";
 import Product from "../product/product.model.js";
@@ -164,5 +165,53 @@ export const getCustomerAnalyticsService = async (user, query) => {
       totalSpent: c.totalSpent
     })),
     pagination: createPaginationInfo(page, limit, totalData)
+  };
+};
+
+
+export const getSingleCustomerService = async (user, userId) => {
+  if (user.role !== "ADMIN") {
+    throw new Error("Only admin can access customer analytics");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return null;
+  }
+
+  const [customer] = await Order.aggregate([
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(userId)
+      }
+    },
+    {
+      $group: {
+        _id: "$userId",
+        totalSpent: { $sum: "$totalAmount" },
+        totalOrders: { $sum: 1 },
+        totalQuantity: { $sum: { $sum: "$items.quantity" } }
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    { $unwind: "$user" }
+  ]);
+
+  if (!customer) return null;
+
+  return {
+    userId: customer._id,
+    name: customer.user.name,
+    email: customer.user.email,
+    image: customer.user.image,
+    totalOrders: customer.totalOrders,
+    totalQuantity: customer.totalQuantity,
+    totalSpent: customer.totalSpent
   };
 };
