@@ -2,16 +2,14 @@ import Category from "./category.model.js";
 import mongoose from "mongoose";
 
 
-
 // Get all with pagination, optional search/filter
 export const getAllCategoriesService = async ({ page, limit, search, isActive }) => {
   const skip = (page - 1) * limit;
 
   const filters = {};
 
-  if (typeof isActive !== "undefined") {
-    filters.isActive = isActive;
-  }
+  // Default to active categories unless explicitly overridden
+  filters.isActive = typeof isActive !== "undefined" ? isActive : true;
 
   if (search) {
     filters.name = { $regex: search, $options: "i" };
@@ -33,7 +31,7 @@ export const getAllCategoriesService = async ({ page, limit, search, isActive })
 // Get by id
 export const getCategoryByIdService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
-  return await Category.findById(id);
+  return await Category.findOne({ _id: id, isActive: true });
 };
 
 
@@ -60,12 +58,11 @@ export const updateCategoryService = async (id, updatedFields) => {
 export const deleteCategoryService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
 
-  // safety
-  const productExists = await Product.exists({ category: id });
-  if (productExists) {
-    throw new Error("Cannot delete category. Products are using this category.");
-  }
-
-  const result = await Category.findByIdAndDelete(id);
+  // Soft delete: deactivate category but keep record for referenced products
+  const result = await Category.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
   return result ? true : false;
 };

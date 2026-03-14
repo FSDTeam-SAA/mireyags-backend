@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import slugify from "slugify";
 import Brand from "./brands.model.js";
+import Product from "../product/product.model.js";
 
 
 // Get all brands with optional search/filter
@@ -9,9 +10,8 @@ export const getAllBrandsService = async ({ page, limit, search, isActive }) => 
 
   const filters = {};
 
-  if (typeof isActive !== "undefined") {
-    filters.isActive = isActive;
-  }
+  // Default to active brands unless explicitly overridden
+  filters.isActive = typeof isActive !== "undefined" ? isActive : true;
 
   if (search) {
     filters.$or = [
@@ -36,7 +36,7 @@ export const getAllBrandsService = async ({ page, limit, search, isActive }) => 
 // Get brand by ID
 export const getBrandByIdService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
-  return await Brand.findById(id);
+  return await Brand.findOne({ _id: id, isActive: true });
 };
 
 
@@ -83,12 +83,11 @@ export const updateBrandService = async (id, updatedFields) => {
 export const deleteBrandService = async (id) => {
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
 
-  // Optional production safety
-  const productExists = await Product.exists({ brand: id });
-  if (productExists) {
-    throw new Error("Cannot delete brand. Products are using this brand.");
-  }
-
-  const result = await Brand.findByIdAndDelete(id);
+  // Soft delete: deactivate brand but keep record for referenced products
+  const result = await Brand.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
   return result ? true : false;
 };
