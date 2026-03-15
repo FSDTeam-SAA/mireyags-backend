@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import mongoose from "mongoose";
 import Product from "../product/product.model.js";
 import Order from "./order.model.js";
 import { createPaginationInfo } from "../../lib/pagination.js";
@@ -120,8 +121,7 @@ export const getOrdersService = async (user, query) => {
 
   if (query.search) {
     const regex = new RegExp(query.search, "i");
-
-    match.$or = [
+    const or = [
       { "delivery.type": regex },
       { "delivery.firstName": regex },
       { "delivery.lastName": regex },
@@ -129,8 +129,17 @@ export const getOrdersService = async (user, query) => {
       { "delivery.email": regex },
       { "delivery.city": regex },
       { "delivery.area": regex },
-      { "delivery.address": regex }
+      { "delivery.address": regex },
+      { "items.name": regex }
     ];
+
+    // If search looks like an ObjectId, allow matching by order or product id.
+    if (mongoose.Types.ObjectId.isValid(query.search)) {
+      const id = new mongoose.Types.ObjectId(query.search);
+      or.push({ _id: id }, { "items.productId": id });
+    }
+
+    match.$or = or;
   }
 
   const totalData = await Order.countDocuments(match);
