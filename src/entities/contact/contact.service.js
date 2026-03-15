@@ -11,9 +11,21 @@ export const getContactById = async (id) => {
 };
 
 // simple pagination only (page, limit)
-export const listContacts = async ({ page = 1, limit = 10 } = {}) => {
-  const total = await Contact.countDocuments({});
-  const items = await Contact.find({})
+export const listContacts = async ({ page = 1, limit = 10, search } = {}) => {
+  const match = {};
+
+  if (search) {
+    const regex = new RegExp(search, 'i');
+    match.$or = [
+      { name: regex },
+      { email: regex },
+      { phone: regex },
+      { message: regex }
+    ];
+  }
+
+  const total = await Contact.countDocuments(match);
+  const items = await Contact.find(match)
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
     .limit(limit);
