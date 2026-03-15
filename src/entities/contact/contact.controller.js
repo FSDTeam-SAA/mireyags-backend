@@ -30,7 +30,9 @@ export const listContactsController = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page || '1', 10);
     const limit = Math.min(parseInt(req.query.limit || '10', 10), 100);
-    const data = await listContacts({ page, limit });
+    const search = (req.query.search || '').trim() || undefined;
+
+    const data = await listContacts({ page, limit, search });
     generateResponse(res, 200, true, 'Contacts fetched', data);
   } catch (err) {
     next(err);
