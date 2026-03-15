@@ -4,30 +4,6 @@ import User from "../auth/auth.model.js";
 import RoleType from "../../lib/types.js";
 import fs from "fs";
 
-const normalizeAddressUpdate = (incomingAddress = {}, currentAddress = {}) => {
-  const mapped = {};
-  const source = incomingAddress || {};
-
-  const candidates = [
-    ["country", "country"],
-    ["cityState", "cityState"],
-    ["city", "cityState"],
-    ["roadArea", "roadArea"],
-    ["address", "roadArea"],
-    ["postalCode", "postalCode"],
-    ["zip", "postalCode"],
-    ["taxId", "taxId"],
-  ];
-
-  for (const [from, to] of candidates) {
-    if (source[from] !== undefined) {
-      mapped[to] = source[from];
-    }
-  }
-
-  return Object.keys(mapped).length ? { ...currentAddress, ...mapped } : null;
-};
-
 
 // Get all users
 export const getAllUsers = async ({ page = 1, limit = 10, search, date }) => {
@@ -90,24 +66,14 @@ export const getUserById = async (userId) => {
 
 // Update user
 export const updateUser = async ({ id, ...updateData }) => {
-  const user = await User.findById(id);
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  const { address, ...rest } = updateData;
-  const update = { ...rest };
-
-  const mergedAddress = normalizeAddressUpdate(address, user.address || {});
-  if (mergedAddress) {
-    update.address = mergedAddress;
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(id, update, {
+  const updatedUser = await User.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
   }).select("-password -createdAt -updatedAt -__v -verificationCode -verificationCodeExpires");
 
+  if (!updatedUser) {
+    throw new Error('User not found');
+  }
   return updatedUser;
 };
 
@@ -135,24 +101,14 @@ export const adminGetUserById = async (userId) => {
 
 // Update user
 export const adminUpdateUser = async ({ id, ...updateData }) => {
-  const user = await User.findById(id);
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  const { address, ...rest } = updateData;
-  const update = { ...rest };
-
-  const mergedAddress = normalizeAddressUpdate(address, user.address || {});
-  if (mergedAddress) {
-    update.address = mergedAddress;
-  }
-
-  const updatedUser = await User.findByIdAndUpdate(id, update, {
+  const updatedUser = await User.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
   }).select("-password -createdAt -updatedAt -__v -verificationCode -verificationCodeExpires");
 
+  if (!updatedUser) {
+    throw new Error('User not found');
+  }
   return updatedUser;
 };
 
