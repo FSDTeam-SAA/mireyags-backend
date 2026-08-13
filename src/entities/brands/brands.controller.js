@@ -6,13 +6,22 @@ import * as brandService from "./brands.service.js";
 // Get all brands
 export const getAllBrands = async (req, res) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
+    let { page = 1, limit = 10, q, search, isActive } = req.query;
 
     page = parseInt(page);
     limit = parseInt(limit);
 
+    const searchTerm = (search || q)?.trim();
+    const parsedIsActive =
+      typeof isActive !== "undefined" ? isActive === "true" : undefined;
+
     const { brands, totalData } =
-      await brandService.getAllBrandsService({ page, limit });
+      await brandService.getAllBrandsService({
+        page,
+        limit,
+        search: searchTerm,
+        isActive: parsedIsActive
+      });
 
     const pagination = createPaginationInfo(page, limit, totalData);
 
